@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>BulkVerify — Bulk Email Validation</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0b0e14;--bg2:#111520;--bg3:#171c29;
+  --border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);
+  --text:#e8eaf0;--muted:#7a80a0;--dim:#454d6a;
+  --green:#1dbd89;--green-dim:rgba(29,189,137,0.12);--green-border:rgba(29,189,137,0.28);
+  --red:#e24b4a;--amber:#ef9f27;--blue:#4b9eff;
+  --radius:10px;--radius-lg:16px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6}
+
+/* NAV */
+nav{display:flex;align-items:center;justify-content:space-between;padding:18px 40px;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:100;backdrop-filter:blur(8px)}
+.logo{font-size:18px;font-weight:700;letter-spacing:-0.5px;color:#fff;text-decoration:none;display:flex;align-items:center;gap:8px}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block}
+.nav-cta{border:1px solid var(--green);color:var(--green);padding:7px 18px;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;transition:all .15s;display:none}
+.nav-cta:hover{background:var(--green-dim)}
+.nav-cta.show{display:inline-flex}
+
+/* HERO */
+.hero{max-width:840px;margin:0 auto;padding:72px 24px 40px;text-align:center}
+.eyebrow{display:inline-flex;align-items:center;gap:6px;background:var(--green-dim);border:1px solid var(--green-border);color:var(--green);font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:5px 14px;border-radius:100px;margin-bottom:26px}
+.eyebrow::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--green)}
+h1{font-size:clamp(34px,5vw,56px);font-weight:800;letter-spacing:-1.5px;line-height:1.08;color:#fff;margin-bottom:18px}
+h1 .accent{color:var(--green)}
+h1 .sub{display:block;color:var(--muted);font-weight:400;font-size:.7em;letter-spacing:-0.3px;margin-top:8px}
+.hero-p{font-size:17px;color:var(--muted);max-width:520px;margin:0 auto 40px;line-height:1.65}
+
+/* STATS STRIP */
+.stats{display:flex;justify-content:center;flex-wrap:wrap;margin-bottom:48px}
+.stat{padding:0 24px;border-right:1px solid var(--border);text-align:center}
+.stat:last-child{border-right:none}
+.stat-n{font-size:22px;font-weight:700;color:#fff;letter-spacing:-0.5px}
+.stat-l{font-size:12px;color:var(--muted);margin-top:2px}
+
+/* INPUT CARD */
+.card{max-width:700px;margin:0 auto 52px;padding:0 24px}
+
+/* Tabs */
+.tabs{display:flex;gap:2px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:4px;margin-bottom:16px}
+.tab-btn{flex:1;padding:9px;border:none;border-radius:7px;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;background:transparent;color:var(--muted)}
+.tab-btn.active{background:var(--bg3);color:#fff;border:1px solid var(--border2)}
+
+/* Drop zone */
+.drop-zone{border:1.5px dashed var(--border2);border-radius:var(--radius-lg);padding:48px 28px;text-align:center;cursor:pointer;transition:all .2s;background:var(--bg2)}
+.drop-zone.over,.drop-zone:hover{border-color:var(--green);background:var(--green-dim)}
+.drop-icon{width:52px;height:52px;border-radius:12px;background:var(--bg3);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:22px}
+.drop-title{font-size:16px;font-weight:600;color:#fff;margin-bottom:5px}
+.drop-sub{font-size:13px;color:var(--muted);margin-bottom:18px}
+.fmt-wrap{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
+.fmt{padding:3px 9px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);font-size:11px;font-weight:600;letter-spacing:.04em;color:var(--muted)}
+#file-input{display:none}
+
+/* File list */
+.file-list{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+.file-item{display:flex;align-items:center;gap:10px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px}
+.fi-icon{font-size:15px}
+.fi-name{flex:1;color:var(--text);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fi-size{color:var(--muted);font-size:12px;flex-shrink:0}
+.fi-rm{color:var(--dim);cursor:pointer;font-size:16px;padding:0 4px;flex-shrink:0}
+.fi-rm:hover{color:var(--red)}
+
+/* Paste zone */
+.paste-area{display:none}
+.paste-area.active{display:block}
+.paste-textarea{width:100%;min-height:180px;padding:14px;background:var(--bg2);border:1.5px solid var(--border2);border-radius:var(--radius-lg);color:var(--text);font-size:13px;font-family:'Courier New',monospace;resize:vertical;outline:none;transition:border-color .15s;line-height:1.6}
+.paste-textarea:focus{border-color:var(--green)}
+.paste-hint{font-size:12px;color:var(--dim);margin-top:8px;line-height:1.5}
+.paste-count{font-size:12px;color:var(--green);margin-top:6px;font-weight:500;min-height:18px}
+
+/* API zone */
+.api-area{display:none}
+.api-area.active{display:block}
+.api-box{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:14px}
+.api-method{display:inline-block;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;background:rgba(29,189,137,0.15);color:var(--green);letter-spacing:.04em;margin-right:8px}
+.api-path{font-family:monospace;font-size:13px;color:#fff}
+.api-desc{font-size:13px;color:var(--muted);margin:10px 0 14px}
+.code-block{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:monospace;font-size:12px;color:#c8d0f0;overflow-x:auto;line-height:1.7;position:relative}
+.copy-btn{position:absolute;top:10px;right:10px;padding:4px 10px;border-radius:6px;border:1px solid var(--border2);background:var(--bg2);color:var(--muted);font-size:11px;cursor:pointer;transition:all .12s}
+.copy-btn:hover{color:var(--text)}
+.api-label{font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin:14px 0 6px}
+
+/* Options row */
+.opts{display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding:0 4px;gap:12px;flex-wrap:wrap}
+.opt-label{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);cursor:pointer;user-select:none}
+.toggle-wrap{position:relative;width:36px;height:20px;flex-shrink:0}
+.toggle-wrap input{position:absolute;opacity:0;width:100%;height:100%;cursor:pointer;margin:0;z-index:1}
+.toggle-track{width:36px;height:20px;background:var(--dim);border-radius:10px;transition:background .2s;position:relative}
+.toggle-wrap input:checked+.toggle-track{background:var(--green)}
+.toggle-knob{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:#fff;transition:transform .2s;pointer-events:none}
+.toggle-wrap input:checked~.toggle-knob,.toggle-wrap input:checked+.toggle-track+.toggle-knob{transform:translateX(16px)}
+
+.submit-btn{width:100%;margin-top:16px;padding:14px;background:var(--green);color:#0b1810;font-size:15px;font-weight:700;border:none;border-radius:var(--radius);cursor:pointer;transition:all .15s;letter-spacing:-0.2px}
+.submit-btn:hover:not(:disabled){opacity:.9;transform:translateY(-1px)}
+.submit-btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+
+/* Progress */
+#progress-area{max-width:700px;margin:0 auto 48px;padding:0 24px;display:none}
+.prog-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:36px;text-align:center}
+.prog-label{font-size:16px;font-weight:600;color:#fff;margin-bottom:5px}
+.prog-sub{font-size:13px;color:var(--muted);margin-bottom:20px}
+.prog-track{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden;margin-bottom:10px}
+.prog-fill{height:100%;background:var(--green);border-radius:3px;transition:width .4s ease;width:0}
+.prog-pct{font-size:13px;color:var(--muted)}
+
+/* Format support grid */
+.formats-section{max-width:960px;margin:0 auto;padding:0 24px 52px}
+.section-label{text-align:center;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-bottom:28px}
+.format-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.format-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;transition:border-color .15s}
+.format-card:hover{border-color:var(--border2)}
+.fc-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.fc-badge{font-size:11px;font-weight:700;letter-spacing:.05em;padding:3px 8px;border-radius:5px}
+.fc-badge.supported{background:rgba(29,189,137,0.15);color:var(--green)}
+.fc-badge.ocr{background:rgba(75,158,255,0.15);color:var(--blue)}
+.fc-title{font-size:13px;font-weight:600;color:#fff}
+.fc-desc{font-size:12px;color:var(--muted);line-height:1.5}
+
+/* Features */
+.features{max-width:960px;margin:0 auto;padding:0 24px 72px}
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+.feat{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
+.feat-icon{font-size:18px;margin-bottom:8px}
+.feat-title{font-size:13px;font-weight:600;color:#fff;margin-bottom:4px}
+.feat-desc{font-size:12px;color:var(--muted);line-height:1.5}
+
+/* Toast */
+#toast{position:fixed;bottom:20px;right:20px;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:10px 16px;border-radius:9px;font-size:13px;display:none;z-index:999;max-width:340px}
+
+@media(max-width:600px){nav{padding:14px 20px}.hero{padding:44px 20px 28px}.stat{padding:0 14px}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="/"><span class="logo-dot"></span>BulkVerify</a>
+  <a class="nav-cta" href="/dashboard" id="dash-link">Open dashboard →</a>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Production-ready · 15 formats · DNS verified · Instant export</div>
+  <h1>
+    Validation of<br>
+    <span class="accent">Bulk Email</span> Solution
+    <span class="sub">Clean 100,000+ addresses in minutes</span>
+  </h1>
+  <p class="hero-p">Upload any file format, paste a list, or call the REST API. Get instant syntax checks, live MX verification, disposable detection, and an interactive results dashboard.</p>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-n">15</div><div class="stat-l">File formats</div></div>
+    <div class="stat"><div class="stat-n">100k+</div><div class="stat-l">Emails / batch</div></div>
+    <div class="stat"><div class="stat-n">30×</div><div class="stat-l">Concurrent DNS</div></div>
+    <div class="stat"><div class="stat-n">OCR</div><div class="stat-l">Scanned PDFs</div></div>
+    <div class="stat"><div class="stat-n">REST</div><div class="stat-l">JSON API</div></div>
+  </div>
+</section>
+
+<!-- Input card -->
+<div class="card">
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('file')">📂 Upload files</button>
+    <button class="tab-btn" onclick="switchTab('paste')">📋 Paste emails</button>
+    <button class="tab-btn" onclick="switchTab('api')">⚡ REST API</button>
+  </div>
+
+  <!-- File upload tab -->
+  <div id="tab-file">
+    <div class="drop-zone" id="drop-zone">
+      <div class="drop-icon">📂</div>
+      <div class="drop-title">Drop your files here</div>
+      <div class="drop-sub">or click to browse — supports 15 formats</div>
+      <div class="fmt-wrap">
+        <span class="fmt">CSV</span><span class="fmt">XLSX</span><span class="fmt">XLS</span>
+        <span class="fmt">PDF</span><span class="fmt">DOCX</span><span class="fmt">ODS</span>
+        <span class="fmt">ODT</span><span class="fmt">JSON</span><span class="fmt">XML</span>
+        <span class="fmt">HTML</span><span class="fmt">TXT</span><span class="fmt">ZIP</span>
+      </div>
+      <input type="file" id="file-input" multiple
+             accept=".csv,.xlsx,.xls,.pdf,.docx,.doc,.ods,.odt,.json,.jsonl,.xml,.html,.htm,.txt,.zip">
+    </div>
+    <div class="file-list" id="file-list"></div>
+    <div class="opts">
+      <label class="opt-label">
+        <span class="toggle-wrap">
+          <input type="checkbox" id="dns-toggle" checked>
+          <div class="toggle-track"><div class="toggle-knob"></div></div>
+        </span>
+        Live MX / DNS verification
+      </label>
+      <span style="font-size:12px;color:var(--dim)">~2–10s per 1,000 unique domains</span>
+    </div>
+    <button class="submit-btn" id="submit-btn" disabled onclick="submitFiles()">
+      Validate emails →
+    </button>
+  </div>
+
+  <!-- Paste tab -->
+  <div id="tab-paste" style="display:none">
+    <textarea class="paste-textarea" id="paste-input"
+      placeholder="Paste email addresses here — one per line, comma-separated, or any free-form text. The system will extract all email addresses automatically.
+
+Example:
+alice@company.com
+bob@startup.io, charlie@enterprise.org
+Contact support@brand.com for help"
+      oninput="onPasteInput()"></textarea>
+    <div class="paste-hint">Accepts any format — one per line, comma/semicolon separated, or emails embedded in free text. Duplicates are removed automatically.</div>
+    <div class="paste-count" id="paste-count"></div>
+    <div class="opts">
+      <label class="opt-label">
+        <span class="toggle-wrap">
+          <input type="checkbox" id="dns-toggle-paste" checked>
+          <div class="toggle-track"><div class="toggle-knob"></div></div>
+        </span>
+        Live MX / DNS verification
+      </label>
+    </div>
+    <button class="submit-btn" id="paste-btn" disabled onclick="submitPaste()">
+      Validate pasted emails →
+    </button>
+  </div>
+
+  <!-- API tab -->
+  <div id="tab-api" style="display:none">
+    <div class="api-box">
+      <div><span class="api-method">POST</span><span class="api-path">/api/validate</span></div>
+      <div class="api-desc">Synchronous — validates up to 5,000 emails inline and returns results immediately. No polling needed.</div>
+      <div class="api-label">Request</div>
+      <div class="code-block" id="code1">
+<button class="copy-btn" onclick="copyCode('code1')">Copy</button>curl -X POST http://localhost:5000/api/validate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "emails": ["alice@gmail.com", "fake@mailinator.com", "bob@company.io"],
+    "check_dns": false
+  }'</div>
+      <div class="api-label">Response</div>
+      <div class="code-block">{
+  "total": 3,
+  "stats": { "valid": 2, "invalid": 1, "valid_pct": 66.7, ... },
+  "results": [
+    { "email": "alice@gmail.com", "legitimacy": "valid",
+      "activity": "active", "score": 69, ... }
+  ]
+}</div>
+    </div>
+
+    <div class="api-box">
+      <div><span class="api-method">POST</span><span class="api-path">/api/upload</span></div>
+      <div class="api-desc">Async — for large batches. Upload any file format, get a job_id, then poll for results.</div>
+      <div class="api-label">Request</div>
+      <div class="code-block" id="code2">
+<button class="copy-btn" onclick="copyCode('code2')">Copy</button>curl -X POST http://localhost:5000/api/upload \
+  -F "files=@emails.csv" \
+  -F "check_dns=true"
+
+# → { "job_id": "abc-123", "total": 50000 }
+# Poll:
+curl http://localhost:5000/api/job/abc-123</div>
+    </div>
+
+    <div class="api-box">
+      <div><span class="api-method">POST</span><span class="api-path">/api/paste</span></div>
+      <div class="api-desc">Submit raw text as JSON — same as the paste tab but programmatic.</div>
+      <div class="code-block" id="code3">
+<button class="copy-btn" onclick="copyCode('code3')">Copy</button>curl -X POST http://localhost:5000/api/paste \
+  -H "Content-Type: application/json" \
+  -d '{"text": "alice@test.com\nbob@corp.io", "check_dns": false}'</div>
+    </div>
+
+    <div class="api-box" style="margin-bottom:0">
+      <div style="font-size:13px;font-weight:600;color:#fff;margin-bottom:12px">All endpoints</div>
+      <div style="font-size:12px;color:var(--muted);line-height:2;font-family:monospace">
+        GET  /api/job/:id              — poll status + full results<br>
+        GET  /api/job/:id/emails       — paginated list (?legitimacy=valid&q=gmail&page=2)<br>
+        GET  /api/job/:id/export       — download CSV (?legitimacy=valid&activity=active)<br>
+        GET  /api/job/:id/stream       — SSE real-time progress<br>
+        GET  /api/health               — health check + supported formats
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Progress -->
+<div id="progress-area">
+  <div class="prog-card">
+    <div class="prog-label" id="prog-label">Processing…</div>
+    <div class="prog-sub" id="prog-sub">Starting validation engine</div>
+    <div class="prog-track"><div class="prog-fill" id="prog-bar"></div></div>
+    <div class="prog-pct" id="prog-pct">0%</div>
+  </div>
+</div>
+
+<!-- Format support grid -->
+<section class="formats-section">
+  <div class="section-label">Supported formats</div>
+  <div class="format-grid">
+    <div class="format-card"><div class="fc-top"><span class="fc-badge supported">CSV</span><span class="fc-title">Spreadsheet CSV</span></div><div class="fc-desc">Any delimiter — comma, semicolon, tab, pipe. Any column layout.</div></div>
+    <div class="format-card"><div class="fc-top"><span class="fc-badge supported">XLSX</span><span class="fc-title">Excel (modern)</span></div><div class="fc-desc">All worksheets scanned. Any row/column structure.</div></div>
+    <div class="format-card"><div class="fc-top"><span class="fc-badge supported">XLS</span><span class="fc-title">Excel (legacy)</span></div><div class="fc-desc">Older .xls format via xlrd with openpyxl fallback.</div></div>
+    <div class="format-card"><div class="fc-top"><span class="fc-badge supported">PDF</span><span class="fc-title">Text-based PDF</span></div><div class="fc-desc">Extracts text and tables from all pages. Fast.</div></div>
+    <div class="format-card"><div class="fc-top"><span class="fc-badge ocr">OCR</span><span class="fc-title">Scanned PDF</span></div><div class="fc-desc">Image-only PDFs auto-detected and processed with tesseract OCR.</div></div>
+    <div class="format-card"><div class="fc-top"><span class="fc-badge supported">DOCX</span><span class="fc-title">Word document</span></div><div class="fc-desc">Body text, tables, headers and footers all scanned.</div></div>
+    <div class="format-card"><div class="fc-top"><span class="fc-badge supported">ODS</span><span class="fc-title">LibreOffice Sheet</span></div><div class="fc-desc">OpenDocument Spreadsheet — all sheets and cells.</div></div>
+    <div class="format-card"><div class="fc-top"><span class="fc-badge supported">ODT</span><span class="fc-title">LibreOffice Text</span></div><div class="fc-desc">OpenDocument Text — body paragraphs and tables.</div></div>
+    <div class="format-card"><div class="fc-top"><span class="fc-badge supported">JSON</span><span class="fc-title">JSON / JSONL</span></div><div class="fc-desc">Recursively walks all string values at any nesting depth.</div></div>
+    <div class="format-card"><div class="fc-top"><span class="fc-badge supported">XML</span><span class="fc-title">XML</span></div><div class="fc-desc">Text nodes and attribute values. Also handles malformed XML.</div></div>
+    <div class="format-card"><div class="fc-top"><span class="fc-badge supported">HTML</span><span class="fc-title">HTML</span></div><div class="fc-desc">Full tag stripping — catches emails in attributes like mailto:.</div></div>
+    <div class="format-card"><div class="fc-top"><span class="fc-badge supported">TXT</span><span class="fc-title">Plain text</span></div><div class="fc-desc">Any free-form text. One per line, comma-separated, or embedded.</div></div>
+    <div class="format-card"><div class="fc-top"><span class="fc-badge supported">ZIP</span><span class="fc-title">ZIP archive</span></div><div class="fc-desc">Recursively parses every file inside the archive.</div></div>
+    <div class="format-card"><div class="fc-top"><span class="fc-badge supported">PASTE</span><span class="fc-title">Direct paste</span></div><div class="fc-desc">Paste raw text in the browser or POST to /api/paste.</div></div>
+    <div class="format-card"><div class="fc-top"><span class="fc-badge supported">API</span><span class="fc-title">REST JSON API</span></div><div class="fc-desc">POST a JSON array to /api/validate — sync response, no UI needed.</div></div>
+  </div>
+</section>
+
+<section class="features">
+  <div class="section-label">Validation checks</div>
+  <div class="feat-grid">
+    <div class="feat"><div class="feat-icon">✅</div><div class="feat-title">RFC 5321 syntax</div><div class="feat-desc">Full spec compliance — local part, domain, special characters, length limits.</div></div>
+    <div class="feat"><div class="feat-icon">🌐</div><div class="feat-title">Live MX lookup</div><div class="feat-desc">30 concurrent DNS threads confirm the domain can actually receive email.</div></div>
+    <div class="feat"><div class="feat-icon">🗑️</div><div class="feat-title">Disposable detection</div><div class="feat-desc">50+ known throwaway providers blocked — mailinator, guerrillamail, tempmail.</div></div>
+    <div class="feat"><div class="feat-icon">👤</div><div class="feat-title">Role address flag</div><div class="feat-desc">Identifies admin@, support@, noreply@ and 20+ other role prefixes.</div></div>
+    <div class="feat"><div class="feat-icon">📊</div><div class="feat-title">Risk scoring</div><div class="feat-desc">0–100 composite score from all signals. Buckets: valid / risky / invalid.</div></div>
+    <div class="feat"><div class="feat-icon">📥</div><div class="feat-title">CSV export</div><div class="feat-desc">Download any filtered segment with full metadata — MX records, flags, score.</div></div>
+  </div>
+</section>
+
+<div id="toast"></div>
+
+<script>
+// ── Tab switching ──────────────────────────────────────────────────────────────
+let currentTab = 'file';
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', ['file','paste','api'][i] === tab);
+  });
+  document.getElementById('tab-file').style.display  = tab==='file'  ? 'block' : 'none';
+  document.getElementById('tab-paste').style.display = tab==='paste' ? 'block' : 'none';
+  document.getElementById('tab-api').style.display   = tab==='api'   ? 'block' : 'none';
+}
+
+// ── File upload ────────────────────────────────────────────────────────────────
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+let files = [];
+
+if (sessionStorage.getItem('job_id')) document.getElementById('dash-link').classList.add('show');
+
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('over'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('over'); addFiles(Array.from(e.dataTransfer.files)); });
+fileInput.addEventListener('change', () => addFiles(Array.from(fileInput.files)));
+
+const ICONS = {csv:'📄',xlsx:'📊',xls:'📊',pdf:'📋',docx:'📝',doc:'📝',ods:'📊',odt:'📝',json:'📦',jsonl:'📦',xml:'🗂️',html:'🌐',htm:'🌐',txt:'📄',zip:'🗜️'};
+
+function addFiles(newFiles) {
+  const allowed = ['.csv','.xlsx','.xls','.pdf','.docx','.doc','.ods','.odt','.json','.jsonl','.xml','.html','.htm','.txt','.zip'];
+  newFiles.forEach(f => {
+    const ext = '.' + f.name.split('.').pop().toLowerCase();
+    if (!allowed.includes(ext)) { showToast(`${f.name} — unsupported format`); return; }
+    if (!files.find(x => x.name === f.name)) files.push(f);
+  });
+  renderFiles();
+}
+
+function renderFiles() {
+  const list = document.getElementById('file-list');
+  list.innerHTML = '';
+  files.forEach((f,i) => {
+    const ext = f.name.split('.').pop().toLowerCase();
+    const size = f.size > 1048576 ? (f.size/1048576).toFixed(1)+'MB' : Math.round(f.size/1024)+'KB';
+    const d = document.createElement('div');
+    d.className = 'file-item';
+    d.innerHTML = `<span class="fi-icon">${ICONS[ext]||'📄'}</span><span class="fi-name" title="${f.name}">${f.name}</span><span class="fi-size">${size}</span><span class="fi-rm" onclick="removeFile(${i})">✕</span>`;
+    list.appendChild(d);
+  });
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = files.length === 0;
+  btn.textContent = files.length > 0 ? `Validate ${files.length} file${files.length>1?'s':''} →` : 'Validate emails →';
+}
+function removeFile(i) { files.splice(i,1); renderFiles(); }
+
+async function submitFiles() {
+  if (!files.length) return;
+  document.getElementById('submit-btn').disabled = true;
+  const fd = new FormData();
+  files.forEach(f => fd.append('files', f));
+  fd.append('check_dns', document.getElementById('dns-toggle').checked ? 'true' : 'false');
+  await doSubmit('/api/upload', fd);
+}
+
+// ── Paste ──────────────────────────────────────────────────────────────────────
+const EMAIL_RE = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g;
+
+function onPasteInput() {
+  const text = document.getElementById('paste-input').value;
+  const matches = text.match(EMAIL_RE) || [];
+  const unique = [...new Set(matches.map(e => e.toLowerCase()))];
+  const countEl = document.getElementById('paste-count');
+  countEl.textContent = unique.length > 0 ? `${unique.length.toLocaleString()} email${unique.length===1?'':'s'} detected` : '';
+  document.getElementById('paste-btn').disabled = unique.length === 0;
+  document.getElementById('paste-btn').textContent = unique.length > 0
+    ? `Validate ${unique.length.toLocaleString()} email${unique.length===1?'':'s'} →`
+    : 'Validate pasted emails →';
+}
+
+async function submitPaste() {
+  const text = document.getElementById('paste-input').value.trim();
+  if (!text) return;
+  document.getElementById('paste-btn').disabled = true;
+  const fd = new FormData();
+  fd.append('text', text);
+  fd.append('check_dns', document.getElementById('dns-toggle-paste').checked ? 'true' : 'false');
+  await doSubmit('/api/paste', fd);
+}
+
+// ── Shared submit + progress ───────────────────────────────────────────────────
+async function doSubmit(url, body) {
+  try {
+    const res = await fetch(url, { method: 'POST', body });
+    const data = await res.json();
+    if (!res.ok) { showToast(data.error || 'Upload failed'); resetBtns(); return; }
+    sessionStorage.setItem('job_id', data.job_id);
+    document.querySelector('.card').style.display = 'none';
+    document.getElementById('progress-area').style.display = 'block';
+    pollJob(data.job_id, data.total);
+  } catch(e) {
+    showToast('Network error — is the server running?');
+    resetBtns();
+  }
+}
+
+function resetBtns() {
+  document.getElementById('submit-btn').disabled = files.length === 0;
+  document.getElementById('paste-btn').disabled = false;
+}
+
+function pollJob(jobId, total) {
+  const bar = document.getElementById('prog-bar');
+  const pct = document.getElementById('prog-pct');
+  const label = document.getElementById('prog-label');
+  const sub = document.getElementById('prog-sub');
+  const iv = setInterval(async () => {
+    try {
+      const res = await fetch(`/api/job/${jobId}`);
+      const data = await res.json();
+      const p = Math.round(data.done / Math.max(data.total, 1) * 100);
+      bar.style.width = p + '%';
+      pct.textContent = p + '%';
+      label.textContent = `Validating ${data.done.toLocaleString()} of ${data.total.toLocaleString()} emails…`;
+      sub.textContent = p < 30 ? 'Parsing & syntax check…' : p < 70 ? 'Running MX / DNS lookups…' : 'Scoring and categorising…';
+      if (data.status === 'done') {
+        clearInterval(iv);
+        label.textContent = '✅ Validation complete!';
+        sub.textContent = `${data.total.toLocaleString()} emails processed. Redirecting…`;
+        setTimeout(() => { window.location.href = '/dashboard'; }, 800);
+      }
+      if (data.status === 'error') {
+        clearInterval(iv);
+        showToast(data.error || 'Processing failed');
+        document.querySelector('.card').style.display = 'block';
+        document.getElementById('progress-area').style.display = 'none';
+        resetBtns();
+      }
+    } catch(e) {}
+  }, 700);
+}
+
+// ── API tab helpers ────────────────────────────────────────────────────────────
+function copyCode(id) {
+  const el = document.getElementById(id);
+  const btn = el.querySelector('.copy-btn');
+  // Get text without the button text
+  const text = el.childNodes[el.childNodes.length-1].textContent.trim();
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1800);
+  });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 4000);
+}
+</script>
+</body>
+</html>

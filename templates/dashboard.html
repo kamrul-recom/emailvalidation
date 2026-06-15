@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — BulkVerify</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0b0e14;
+    --bg2: #111520;
+    --bg3: #171c29;
+    --border: rgba(255,255,255,0.08);
+    --border2: rgba(255,255,255,0.14);
+    --text: #e8eaf0;
+    --muted: #7a80a0;
+    --dim: #454d6a;
+    --green: #1dbd89;
+    --green-dim: rgba(29,189,137,0.12);
+    --red: #e24b4a;
+    --red-dim: rgba(226,75,74,0.1);
+    --amber: #ef9f27;
+    --amber-dim: rgba(239,159,39,0.12);
+    --blue: #4b9eff;
+    --blue-dim: rgba(75,158,255,0.1);
+    --pink: #d4537e;
+    --pink-dim: rgba(212,83,126,0.12);
+    --radius: 10px;
+    --radius-lg: 14px;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* ── Layout ── */
+  .app { display: flex; height: 100vh; overflow: hidden; }
+  .sidebar {
+    width: 220px;
+    flex-shrink: 0;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 20px 0;
+  }
+  .sidebar-logo {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+  .sidebar-nav { flex: 1; padding: 0 10px; }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--muted);
+    transition: all 0.12s;
+    margin-bottom: 2px;
+    user-select: none;
+  }
+  .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+  .nav-item.active { color: #fff; background: rgba(255,255,255,0.08); font-weight: 500; }
+  .nav-icon { font-size: 15px; width: 20px; text-align: center; }
+  .sidebar-bottom {
+    padding: 12px 10px 0;
+    border-top: 1px solid var(--border);
+  }
+  .new-upload-btn {
+    display: block;
+    text-align: center;
+    padding: 9px;
+    border-radius: 8px;
+    background: var(--green-dim);
+    border: 1px solid rgba(29,189,137,0.25);
+    color: var(--green);
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .new-upload-btn:hover { background: rgba(29,189,137,0.2); }
+
+  /* ── Main ── */
+  .main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 28px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .topbar-title { font-size: 15px; font-weight: 600; color: #fff; }
+  .topbar-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .export-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--text);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .export-btn:hover { background: rgba(255,255,255,0.05); }
+  .export-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: 10px;
+    padding: 6px;
+    min-width: 200px;
+    display: none;
+    z-index: 100;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  }
+  .export-menu.open { display: block; }
+  .export-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px; border-radius: 7px;
+    font-size: 13px; color: var(--muted);
+    cursor: pointer; transition: all 0.12s;
+  }
+  .export-item:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+  .export-item .dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+  .content { padding: 24px 28px; flex: 1; }
+
+  /* ── Panels ── */
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* ── Stat cards ── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .stat-card:hover { border-color: var(--border2); }
+  .stat-card.selected { border-color: var(--c, var(--border2)); }
+  .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
+  .stat-value { font-size: 26px; font-weight: 700; color: var(--c, #fff); letter-spacing: -0.5px; line-height: 1; }
+  .stat-pct { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  /* ── Charts row ── */
+  .charts-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .chart-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+  }
+  .chart-title { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 16px; }
+  .chart-body { display: flex; align-items: center; gap: 20px; }
+  .pie-wrap { flex-shrink: 0; }
+  .legend { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+  .legend-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 10px; border-radius: 7px;
+    cursor: pointer; transition: background 0.12s;
+    font-size: 13px;
+  }
+  .legend-item:hover { background: rgba(255,255,255,0.04); }
+  .legend-item.active { background: rgba(255,255,255,0.07); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .legend-label { flex: 1; color: var(--muted); }
+  .legend-count { font-weight: 600; }
+  .legend-pct { font-size: 11px; color: var(--dim); min-width: 38px; text-align: right; }
+  .chart-hint { font-size: 11px; color: var(--dim); margin-top: 12px; }
+
+  /* ── Drill table ── */
+  .drill-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .drill-title { font-size: 15px; font-weight: 600; color: #fff; flex: 1; }
+  .search-box {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border2);
+    background: var(--bg3);
+    color: var(--text);
+    font-size: 13px;
+    width: 220px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-box:focus { border-color: var(--green); }
+  .count-badge {
+    padding: 3px 10px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    background: rgba(255,255,255,0.06);
+    color: var(--muted);
+  }
+
+  .pill-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+  .pill {
+    padding: 5px 14px;
+    border-radius: 100px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.12s;
+  }
+
+  /* ── Table ── */
+  .table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; }
+  thead tr { border-bottom: 1px solid var(--border2); }
+  th {
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    background: var(--bg3);
+    white-space: nowrap;
+  }
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: rgba(255,255,255,0.025); }
+  td { padding: 9px 14px; font-size: 13px; }
+  .td-email { font-family: 'Courier New', monospace; font-size: 12px; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .td-domain { color: var(--muted); font-size: 12px; }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .badge-valid   { background: rgba(29,189,137,0.15);  color: #1dbd89; }
+  .badge-invalid { background: rgba(226,75,74,0.15);   color: #e24b4a; }
+  .badge-risky   { background: rgba(212,83,126,0.15);  color: #d4537e; }
+  .badge-active  { background: rgba(75,158,255,0.15);  color: #4b9eff; }
+  .badge-inactive{ background: rgba(239,159,39,0.15);  color: #ef9f27; }
+  .score-wrap { display: flex; align-items: center; gap: 8px; }
+  .score-bar { width: 44px; height: 4px; border-radius: 2px; background: var(--bg3); overflow: hidden; }
+  .score-fill { height: 100%; border-radius: 2px; }
+  .score-num { font-size: 12px; color: var(--muted); }
+
+  /* pagination */
+  .pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px;
+    border-top: 1px solid var(--border);
+  }
+  .page-btn {
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--muted);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.12s;
+  }
+  .page-btn:hover:not(:disabled) { color: var(--text); background: rgba(255,255,255,0.05); }
+  .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .page-info { font-size: 12px; color: var(--muted); }
+
+  /* Domain chart */
+  .domain-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  .domain-row { margin-bottom: 10px; }
+  .domain-meta { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
+  .domain-name { font-family: monospace; color: var(--text); }
+  .domain-count { color: var(--muted); }
+  .domain-track { height: 5px; border-radius: 3px; background: var(--bg3); display: flex; overflow: hidden; }
+  .domain-valid { height: 100%; background: var(--green); }
+  .domain-risky { height: 100%; background: var(--pink); }
+  .domain-invalid { height: 100%; background: var(--red); opacity: 0.7; }
+
+  /* Loading / empty states */
+  .loading-state {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 2px solid var(--border2);
+    border-top-color: var(--green);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #toast {
+    position: fixed;
+    bottom: 20px; right: 20px;
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    color: var(--text);
+    padding: 10px 16px;
+    border-radius: 9px;
+    font-size: 13px;
+    display: none;
+    z-index: 999;
+    max-width: 320px;
+  }
+
+  @media (max-width: 700px) {
+    .charts-row { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .content { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-logo"><span class="logo-dot"></span>BulkVerify</div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" onclick="showPanel('overview')" id="nav-overview">
+        <span class="nav-icon">📊</span> Overview
+      </div>
+      <div class="nav-item" onclick="showPanel('emails')" id="nav-emails">
+        <span class="nav-icon">📋</span> Email lists
+      </div>
+      <div class="nav-item" onclick="showPanel('domains')" id="nav-domains">
+        <span class="nav-icon">🌐</span> Domains
+      </div>
+    </nav>
+    <div class="sidebar-bottom">
+      <a class="new-upload-btn" href="/">+ New validation</a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <div class="topbar-title">Validation results</div>
+        <div class="topbar-meta" id="topbar-meta">Loading…</div>
+      </div>
+      <div style="position:relative">
+        <button class="export-btn" onclick="toggleExportMenu()">
+          ⬇ Export CSV <span style="font-size:10px;opacity:0.6">▾</span>
+        </button>
+        <div class="export-menu" id="export-menu">
+          <div class="export-item" onclick="exportCsv()"><span class="dot" style="background:#7a80a0"></span>All emails</div>
+          <div class="export-item" onclick="exportCsv('valid')"><span class="dot" style="background:#1dbd89"></span>Valid only</div>
+          <div class="export-item" onclick="exportCsv(null,'active')"><span class="dot" style="background:#4b9eff"></span>Active only</div>
+          <div class="export-item" onclick="exportCsv('risky')"><span class="dot" style="background:#d4537e"></span>Risky only</div>
+          <div class="export-item" onclick="exportCsv('invalid')"><span class="dot" style="background:#e24b4a"></span>Invalid only</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- Loading -->
+      <div id="loading-state" class="loading-state">
+        <div class="spinner"></div>
+        Loading results…
+      </div>
+
+      <!-- Overview panel -->
+      <div class="panel" id="panel-overview">
+        <div class="stat-grid" id="stat-grid"></div>
+        <div class="charts-row">
+          <div class="chart-card">
+            <div class="chart-title">Legitimacy breakdown</div>
+            <div class="chart-body">
+              <div class="pie-wrap"><canvas id="pie-legitimacy" width="130" height="130"></canvas></div>
+              <div class="legend" id="legend-legitimacy"></div>
+            </div>
+            <div class="chart-hint">Click a segment to drill into that list</div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">Activity status</div>
+            <div class="chart-body">
+              <div class="pie-wrap"><canvas id="pie-activity" width="130" height="130"></canvas></div>
+              <div class="legend" id="legend-activity"></div>
+            </div>
+            <div class="chart-hint">Click a segment to drill into that list</div>
+          </div>
+        </div>
+        <div class="chart-card" style="margin-bottom:24px">
+          <div class="chart-title">Insight</div>
+          <div id="insight-text" style="font-size:14px;color:var(--muted);line-height:1.6"></div>
+        </div>
+      </div>
+
+      <!-- Emails panel -->
+      <div class="panel" id="panel-emails">
+        <div class="drill-header">
+          <div class="drill-title" id="drill-title">All emails</div>
+          <input class="search-box" id="search-box" placeholder="Search emails…" oninput="onSearch()">
+          <span class="count-badge" id="drill-count">—</span>
+        </div>
+        <div class="pill-bar" id="pill-bar"></div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Domain</th>
+                <th>Status</th>
+                <th>Activity</th>
+                <th>Score</th>
+                <th>Flags</th>
+              </tr>
+            </thead>
+            <tbody id="email-tbody"></tbody>
+          </table>
+          <div class="pagination" id="pagination"></div>
+        </div>
+      </div>
+
+      <!-- Domains panel -->
+      <div class="panel" id="panel-domains">
+        <div class="chart-title" style="margin-bottom:16px">Top domains</div>
+        <div id="domain-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────────
+let stats = null;
+let jobId = sessionStorage.getItem('job_id');
+let currentFilter = { legitimacy: null, activity: null };
+let currentPage = 1;
+let searchTimer = null;
+const PER_PAGE = 100;
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+if (!jobId) {
+  document.getElementById('loading-state').innerHTML =
+    '<p style="color:var(--muted)">No results found. <a href="/" style="color:var(--green)">Upload a file →</a></p>';
+} else {
+  loadJob();
+}
+
+async function loadJob() {
+  try {
+    const res = await fetch(`/api/job/${jobId}`);
+    const data = await res.json();
+    if (!res.ok || data.error) { showNoData(); return; }
+    if (data.status === 'processing') {
+      setTimeout(loadJob, 800);
+      return;
+    }
+    stats = data.stats;
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('topbar-meta').textContent =
+      `${stats.total.toLocaleString()} emails · ${data.sources.map(s=>s.name).join(', ')}`;
+    renderOverview();
+    showPanel('overview');
+  } catch (e) {
+    setTimeout(loadJob, 1500);
+  }
+}
+
+function showNoData() {
+  document.getElementById('loading-state').innerHTML =
+    '<p style="color:var(--muted)">Session expired. <a href="/" style="color:var(--green)">Upload again →</a></p>';
+}
+
+// ── Panel switching ───────────────────────────────────────────────────────────
+function showPanel(name) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('nav-' + name).classList.add('active');
+  if (name === 'emails') loadEmailTable();
+  if (name === 'domains') renderDomains();
+}
+
+// ── Overview ──────────────────────────────────────────────────────────────────
+function renderOverview() {
+  if (!stats) return;
+  const s = stats;
+
+  // Stat cards
+  const cards = [
+    { label:'Total', value:s.total, pct:'', color:'#e8eaf0', key:null },
+    { label:'Valid', value:s.valid, pct:s.valid_pct+'%', color:'#1dbd89', key:'valid' },
+    { label:'Risky', value:s.risky, pct:s.risky_pct+'%', color:'#d4537e', key:'risky' },
+    { label:'Invalid', value:s.invalid, pct:s.invalid_pct+'%', color:'#e24b4a', key:'invalid' },
+    { label:'Active', value:s.active, pct:s.active_pct+'%', color:'#4b9eff', key:'active_act' },
+    { label:'Inactive', value:s.inactive, pct:'', color:'#ef9f27', key:'inactive_act' },
+  ];
+  document.getElementById('stat-grid').innerHTML = cards.map(c => `
+    <div class="stat-card" style="--c:${c.color}" onclick="drillFromCard('${c.key}')">
+      <div class="stat-label">${c.label}</div>
+      <div class="stat-value">${c.value.toLocaleString()}</div>
+      ${c.pct ? `<div class="stat-pct">${c.pct}</div>` : ''}
+    </div>
+  `).join('');
+
+  // Pies
+  drawPie('pie-legitimacy', [
+    { label:'Valid', value:s.valid, color:'#1dbd89', key:'valid' },
+    { label:'Risky', value:s.risky, color:'#d4537e', key:'risky' },
+    { label:'Invalid', value:s.invalid, color:'#e24b4a', key:'invalid' },
+  ], 'legitimacy');
+  drawPie('pie-activity', [
+    { label:'Active', value:s.active, color:'#4b9eff', key:'active' },
+    { label:'Inactive', value:s.inactive, color:'#ef9f27', key:'inactive' },
+  ], 'activity');
+
+  // Insight
+  const total = s.total;
+  let insight = `Your list has <strong style="color:#fff">${s.valid_pct}% valid</strong> addresses. `;
+  if (s.invalid > 0) insight += `Remove <strong style="color:#e24b4a">${s.invalid.toLocaleString()} invalid</strong> emails to reduce bounces. `;
+  if (s.risky > 0) insight += `<strong style="color:#d4537e">${s.risky.toLocaleString()} risky</strong> addresses need manual review. `;
+  if (s.active > 0) insight += `<strong style="color:#4b9eff">${s.active.toLocaleString()} active</strong> emails are your best send targets.`;
+  document.getElementById('insight-text').innerHTML = insight;
+}
+
+function drawPie(canvasId, slices, type) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  const size = 130, cx = size/2, cy = size/2, r = 50, hole = 28;
+  ctx.clearRect(0, 0, size, size);
+
+  const total = slices.reduce((s,sl) => s+sl.value, 0);
+  if (!total) return;
+
+  let start = -Math.PI / 2;
+  const segData = [];
+  slices.forEach(sl => {
+    const sweep = (sl.value / total) * Math.PI * 2;
+    segData.push({ ...sl, start, end: start + sweep, sweep });
+    start += sweep;
+  });
+
+  const drawSegment = (seg, offset = 0) => {
+    const mx = offset ? Math.cos((seg.start+seg.end)/2)*offset : 0;
+    const my = offset ? Math.sin((seg.start+seg.end)/2)*offset : 0;
+    ctx.save();
+    ctx.translate(mx, my);
+    ctx.beginPath();
+    ctx.moveTo(cx + hole * Math.cos(seg.start), cy + hole * Math.sin(seg.start));
+    ctx.arc(cx, cy, r, seg.start, seg.end);
+    ctx.arc(cx, cy, hole, seg.end, seg.start, true);
+    ctx.closePath();
+    ctx.fillStyle = seg.color;
+    ctx.fill();
+    ctx.restore();
+  };
+
+  segData.forEach(seg => drawSegment(seg));
+
+  // Store for click
+  canvas._segData = segData;
+  canvas._type = type;
+  canvas.style.cursor = 'pointer';
+  canvas.onclick = (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = size / rect.width;
+    const scaleY = size / rect.height;
+    const x = (e.clientX - rect.left) * scaleX - cx;
+    const y = (e.clientY - rect.top) * scaleY - cy;
+    const dist = Math.sqrt(x*x + y*y);
+    if (dist < hole || dist > r + 8) return;
+    let angle = Math.atan2(y, x);
+    if (angle < -Math.PI/2) angle += Math.PI*2;
+    const seg = segData.find(s => angle >= s.start && angle <= s.end);
+    if (seg) drillInto(type === 'legitimacy' ? seg.key : null, type === 'activity' ? seg.key : null);
+  };
+
+  // Legend
+  const legendEl = document.getElementById('legend-' + type);
+  legendEl.innerHTML = segData.map(seg => `
+    <div class="legend-item" onclick="drillInto(${type==='legitimacy'?`'${seg.key}'`:'null'}, ${type==='activity'?`'${seg.key}'`:'null'})" data-key="${seg.key}">
+      <span class="legend-dot" style="background:${seg.color}"></span>
+      <span class="legend-label">${seg.label}</span>
+      <span class="legend-count" style="color:${seg.color}">${seg.value.toLocaleString()}</span>
+      <span class="legend-pct">${total ? (seg.value/total*100).toFixed(1)+'%' : '—'}</span>
+    </div>
+  `).join('');
+}
+
+function drillInto(legitimacy, activity) {
+  currentFilter = { legitimacy: legitimacy || null, activity: activity || null };
+  currentPage = 1;
+  document.getElementById('search-box').value = '';
+  showPanel('emails');
+}
+
+function drillFromCard(key) {
+  if (!key) { drillInto(null, null); return; }
+  if (['valid','risky','invalid'].includes(key)) drillInto(key, null);
+  else if (key === 'active_act') drillInto(null, 'active');
+  else if (key === 'inactive_act') drillInto(null, 'inactive');
+}
+
+// ── Email table ───────────────────────────────────────────────────────────────
+async function loadEmailTable() {
+  const tbody = document.getElementById('email-tbody');
+  tbody.innerHTML = '<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted)"><div class="spinner" style="margin:0 auto"></div></td></tr>';
+
+  const f = currentFilter;
+  const q = document.getElementById('search-box').value;
+  const params = new URLSearchParams({
+    page: currentPage,
+    per_page: PER_PAGE,
+    ...(f.legitimacy && { legitimacy: f.legitimacy }),
+    ...(f.activity && { activity: f.activity }),
+    ...(q && { q }),
+  });
+
+  const res = await fetch(`/api/job/${jobId}/emails?${params}`);
+  const data = await res.json();
+
+  // Pills
+  const pills = [
+    { label:'All', key:null, color:'#7a80a0' },
+    { label:'Valid', key:'valid', color:'#1dbd89', type:'legitimacy' },
+    { label:'Risky', key:'risky', color:'#d4537e', type:'legitimacy' },
+    { label:'Invalid', key:'invalid', color:'#e24b4a', type:'legitimacy' },
+    { label:'Active', key:'active', color:'#4b9eff', type:'activity' },
+    { label:'Inactive', key:'inactive', color:'#ef9f27', type:'activity' },
+  ];
+  const cf = currentFilter;
+  document.getElementById('pill-bar').innerHTML = pills.map(p => {
+    const isActive = (!p.type && !cf.legitimacy && !cf.activity)
+      || (p.type === 'legitimacy' && cf.legitimacy === p.key)
+      || (p.type === 'activity' && cf.activity === p.key);
+    return `<div class="pill" onclick="setPill('${p.type||''}','${p.key||''}')"
+      style="background:${isActive ? p.color+'22' : 'var(--bg3)'};
+             color:${isActive ? p.color : 'var(--muted)'};
+             border-color:${isActive ? p.color+'66' : 'var(--border)'}">${p.label}</div>`;
+  }).join('');
+
+  // Title
+  const titleParts = [];
+  if (cf.legitimacy) titleParts.push(cf.legitimacy.charAt(0).toUpperCase() + cf.legitimacy.slice(1));
+  if (cf.activity) titleParts.push(cf.activity.charAt(0).toUpperCase() + cf.activity.slice(1));
+  document.getElementById('drill-title').textContent = titleParts.length ? titleParts.join(' · ') + ' emails' : 'All emails';
+  document.getElementById('drill-count').textContent = data.total.toLocaleString() + ' emails';
+
+  // Rows
+  tbody.innerHTML = data.emails.map(r => {
+    const scoreColor = r.score >= 65 ? '#1dbd89' : r.score >= 40 ? '#ef9f27' : '#e24b4a';
+    const flags = (r.risk_flags || []).slice(0,2).join(', ');
+    return `
+      <tr>
+        <td class="td-email" title="${r.email}">${r.email}</td>
+        <td class="td-domain">${r.domain}</td>
+        <td><span class="badge badge-${r.legitimacy}">${r.legitimacy}</span></td>
+        <td><span class="badge badge-${r.activity}">${r.activity}</span></td>
+        <td>
+          <div class="score-wrap">
+            <div class="score-bar"><div class="score-fill" style="width:${r.score}%;background:${scoreColor}"></div></div>
+            <span class="score-num">${r.score}</span>
+          </div>
+        </td>
+        <td style="font-size:11px;color:var(--dim);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${flags}">${flags}</td>
+      </tr>`;
+  }).join('') || '<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted)">No emails match</td></tr>';
+
+  // Pagination
+  const pg = document.getElementById('pagination');
+  if (data.pages > 1) {
+    pg.innerHTML = `
+      <button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage<=1?'disabled':''}>← Prev</button>
+      <span class="page-info">Page ${currentPage} of ${data.pages} · ${data.total.toLocaleString()} total</span>
+      <button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage>=data.pages?'disabled':''}>Next →</button>
+    `;
+  } else {
+    pg.innerHTML = '';
+  }
+}
+
+function setPill(type, key) {
+  currentFilter = { legitimacy: null, activity: null };
+  if (type === 'legitimacy' && key) currentFilter.legitimacy = key;
+  if (type === 'activity' && key) currentFilter.activity = key;
+  currentPage = 1;
+  loadEmailTable();
+}
+
+function goPage(p) { currentPage = p; loadEmailTable(); }
+function onSearch() { clearTimeout(searchTimer); searchTimer = setTimeout(() => { currentPage=1; loadEmailTable(); }, 300); }
+
+// ── Domains ───────────────────────────────────────────────────────────────────
+async function renderDomains() {
+  if (!stats) return;
+  const el = document.getElementById('domain-list');
+  el.innerHTML = '';
+  const total = stats.total;
+  stats.top_domains.forEach(({ domain, count }) => {
+    const pct = (count / total * 100).toFixed(1);
+    el.innerHTML += `
+      <div class="domain-row">
+        <div class="domain-meta">
+          <span class="domain-name">${domain}</span>
+          <span class="domain-count">${count.toLocaleString()} · ${pct}%</span>
+        </div>
+        <div class="domain-track">
+          <div class="domain-valid" style="width:${pct}%"></div>
+        </div>
+      </div>`;
+  });
+}
+
+// ── Export ────────────────────────────────────────────────────────────────────
+function toggleExportMenu() {
+  document.getElementById('export-menu').classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.export-btn') && !e.target.closest('.export-menu'))
+    document.getElementById('export-menu').classList.remove('open');
+});
+function exportCsv(legitimacy, activity) {
+  const params = new URLSearchParams();
+  if (legitimacy) params.set('legitimacy', legitimacy);
+  if (activity) params.set('activity', activity);
+  window.open(`/api/job/${jobId}/export?${params}`, '_blank');
+  document.getElementById('export-menu').classList.remove('open');
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3500);
+}
+</script>
+</body>
+</html>
