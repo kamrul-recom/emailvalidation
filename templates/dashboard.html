@@ -7,45 +7,67 @@
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   :root {
-    --bg: #0b0e14;
-    --bg2: #111520;
-    --bg3: #171c29;
-    --border: rgba(255,255,255,0.08);
-    --border2: rgba(255,255,255,0.14);
-    --text: #e8eaf0;
-    --muted: #7a80a0;
-    --dim: #454d6a;
-    --green: #1dbd89;
-    --green-dim: rgba(29,189,137,0.12);
-    --red: #e24b4a;
-    --red-dim: rgba(226,75,74,0.1);
-    --amber: #ef9f27;
-    --amber-dim: rgba(239,159,39,0.12);
-    --blue: #4b9eff;
-    --blue-dim: rgba(75,158,255,0.1);
-    --pink: #d4537e;
-    --pink-dim: rgba(212,83,126,0.12);
-    --radius: 10px;
-    --radius-lg: 14px;
+    --bg: #e6edf8;
+    --bg-gradient: linear-gradient(145deg, #f4f7fd 0%, #e8effa 40%, #dfe9f8 70%, #eef3fb 100%);
+    --bg2: rgba(255, 255, 255, 0.78);
+    --bg3: rgba(255, 255, 255, 0.62);
+    --glass: rgba(255, 255, 255, 0.72);
+    --border: rgba(80, 120, 180, 0.14);
+    --border2: rgba(80, 120, 180, 0.22);
+    --text: #1c2d4a;
+    --heading: #0f1a2e;
+    --muted: #5c6f8c;
+    --dim: #8a9bb5;
+    --green: #0a9f6e;
+    --green-dim: rgba(10, 159, 110, 0.12);
+    --red: #d63b3a;
+    --red-dim: rgba(214, 59, 58, 0.1);
+    --amber: #c97a0a;
+    --amber-dim: rgba(201, 122, 10, 0.12);
+    --blue: #2563c7;
+    --blue-dim: rgba(37, 99, 199, 0.1);
+    --pink: #c43d6a;
+    --pink-dim: rgba(196, 61, 106, 0.12);
+    --shadow: 0 8px 32px rgba(50, 80, 140, 0.1);
+    --shadow-lg: 0 20px 50px rgba(50, 80, 140, 0.12);
+    --gloss: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 4px 20px rgba(70, 110, 170, 0.08);
+    --radius: 12px;
+    --radius-lg: 18px;
   }
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
-    background: var(--bg);
+    background: var(--bg-gradient);
+    background-attachment: fixed;
     color: var(--text);
     min-height: 100vh;
     font-size: 14px;
+    position: relative;
   }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(ellipse 70% 55% at 8% 12%, rgba(130, 180, 255, 0.28) 0%, transparent 55%),
+      radial-gradient(ellipse 60% 50% at 92% 88%, rgba(180, 140, 255, 0.18) 0%, transparent 50%),
+      radial-gradient(ellipse 50% 35% at 50% -5%, rgba(255, 255, 255, 0.9) 0%, transparent 55%);
+  }
+  .app { position: relative; z-index: 1; }
 
   /* ── Layout ── */
   .app { display: flex; height: 100vh; overflow: hidden; }
   .sidebar {
     width: 220px;
     flex-shrink: 0;
-    background: var(--bg2);
+    background: rgba(255, 255, 255, 0.55);
     border-right: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     padding: 20px 0;
+    backdrop-filter: blur(20px) saturate(1.4);
+    box-shadow: 1px 0 0 rgba(255, 255, 255, 0.8) inset;
   }
   .sidebar-logo {
     padding: 0 20px 20px;
@@ -53,7 +75,7 @@
     margin-bottom: 12px;
     font-size: 16px;
     font-weight: 700;
-    color: #fff;
+    color: var(--heading);
     letter-spacing: -0.5px;
     display: flex;
     align-items: center;
@@ -74,8 +96,8 @@
     margin-bottom: 2px;
     user-select: none;
   }
-  .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.04); }
-  .nav-item.active { color: #fff; background: rgba(255,255,255,0.08); font-weight: 500; }
+  .nav-item:hover { color: var(--heading); background: rgba(255, 255, 255, 0.5); }
+  .nav-item.active { color: var(--heading); background: rgba(255, 255, 255, 0.85); font-weight: 500; box-shadow: 0 2px 8px rgba(60, 90, 140, 0.08); }
   .nav-icon { font-size: 15px; width: 20px; text-align: center; }
   .sidebar-bottom {
     padding: 12px 10px 0;
@@ -104,12 +126,14 @@
     justify-content: space-between;
     padding: 16px 28px;
     border-bottom: 1px solid var(--border);
-    background: var(--bg);
+    background: rgba(255, 255, 255, 0.5);
     position: sticky;
     top: 0;
     z-index: 10;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.8) inset;
   }
-  .topbar-title { font-size: 15px; font-weight: 600; color: #fff; }
+  .topbar-title { font-size: 15px; font-weight: 600; color: var(--heading); }
   .topbar-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
   .export-btn {
     display: flex;
@@ -118,26 +142,28 @@
     padding: 8px 16px;
     border-radius: 8px;
     border: 1px solid var(--border2);
-    background: transparent;
+    background: rgba(255, 255, 255, 0.8);
     color: var(--text);
     font-size: 13px;
     cursor: pointer;
     transition: all 0.15s;
     position: relative;
+    box-shadow: var(--gloss);
   }
-  .export-btn:hover { background: rgba(255,255,255,0.05); }
+  .export-btn:hover { background: rgba(255, 255, 255, 0.95); box-shadow: var(--shadow); }
   .export-menu {
     position: absolute;
     top: calc(100% + 6px);
     right: 0;
-    background: var(--bg2);
+    background: rgba(255, 255, 255, 0.95);
     border: 1px solid var(--border2);
     border-radius: 10px;
     padding: 6px;
     min-width: 200px;
     display: none;
     z-index: 100;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: blur(16px);
   }
   .export-menu.open { display: block; }
   .export-item {
@@ -146,7 +172,7 @@
     font-size: 13px; color: var(--muted);
     cursor: pointer; transition: all 0.12s;
   }
-  .export-item:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+  .export-item:hover { color: var(--heading); background: rgba(230, 240, 255, 0.6); }
   .export-item .dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
 
   .content { padding: 24px 28px; flex: 1; }
@@ -163,33 +189,37 @@
     margin-bottom: 24px;
   }
   .stat-card {
-    background: var(--bg2);
+    background: var(--glass);
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 16px;
     cursor: pointer;
-    transition: border-color 0.15s;
+    transition: all 0.15s;
+    backdrop-filter: blur(12px);
+    box-shadow: var(--gloss);
   }
-  .stat-card:hover { border-color: var(--border2); }
+  .stat-card:hover { border-color: var(--border2); box-shadow: var(--shadow); transform: translateY(-1px); }
   .stat-card.selected { border-color: var(--c, var(--border2)); }
   .stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
-  .stat-value { font-size: 26px; font-weight: 700; color: var(--c, #fff); letter-spacing: -0.5px; line-height: 1; }
+  .stat-value { font-size: 26px; font-weight: 700; color: var(--c, var(--heading)); letter-spacing: -0.5px; line-height: 1; }
   .stat-pct { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
   /* ── Charts row ── */
   .charts-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 16px;
     margin-bottom: 24px;
   }
   .chart-card {
-    background: var(--bg2);
+    background: var(--glass);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     padding: 20px;
+    backdrop-filter: blur(14px);
+    box-shadow: var(--gloss);
   }
-  .chart-title { font-size: 13px; font-weight: 600; color: #fff; margin-bottom: 16px; }
+  .chart-title { font-size: 13px; font-weight: 600; color: var(--heading); margin-bottom: 16px; }
   .chart-body { display: flex; align-items: center; gap: 20px; }
   .pie-wrap { flex-shrink: 0; }
   .legend { flex: 1; display: flex; flex-direction: column; gap: 6px; }
@@ -199,8 +229,8 @@
     cursor: pointer; transition: background 0.12s;
     font-size: 13px;
   }
-  .legend-item:hover { background: rgba(255,255,255,0.04); }
-  .legend-item.active { background: rgba(255,255,255,0.07); }
+  .legend-item:hover { background: rgba(230, 240, 255, 0.55); }
+  .legend-item.active { background: rgba(255, 255, 255, 0.75); }
   .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
   .legend-label { flex: 1; color: var(--muted); }
   .legend-count { font-weight: 600; }
@@ -215,17 +245,18 @@
     margin-bottom: 16px;
     flex-wrap: wrap;
   }
-  .drill-title { font-size: 15px; font-weight: 600; color: #fff; flex: 1; }
+  .drill-title { font-size: 15px; font-weight: 600; color: var(--heading); flex: 1; }
   .search-box {
     padding: 8px 12px;
     border-radius: 8px;
     border: 1px solid var(--border2);
-    background: var(--bg3);
+    background: rgba(255, 255, 255, 0.85);
     color: var(--text);
     font-size: 13px;
     width: 220px;
     outline: none;
     transition: border-color 0.15s;
+    box-shadow: inset 0 1px 2px rgba(60, 90, 140, 0.06);
   }
   .search-box:focus { border-color: var(--green); }
   .count-badge {
@@ -233,8 +264,9 @@
     border-radius: 100px;
     font-size: 11px;
     font-weight: 600;
-    background: rgba(255,255,255,0.06);
+    background: rgba(255, 255, 255, 0.8);
     color: var(--muted);
+    border: 1px solid var(--border);
   }
 
   .pill-bar { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
@@ -249,7 +281,7 @@
   }
 
   /* ── Table ── */
-  .table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); }
+  .table-wrap { overflow-x: auto; border-radius: var(--radius); border: 1px solid var(--border); background: rgba(255, 255, 255, 0.75); box-shadow: var(--gloss); backdrop-filter: blur(10px); }
   table { width: 100%; border-collapse: collapse; }
   thead tr { border-bottom: 1px solid var(--border2); }
   th {
@@ -260,12 +292,12 @@
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--muted);
-    background: var(--bg3);
+    background: rgba(248, 250, 255, 0.9);
     white-space: nowrap;
   }
   tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
   tbody tr:last-child { border-bottom: none; }
-  tbody tr:hover { background: rgba(255,255,255,0.025); }
+  tbody tr:hover { background: rgba(230, 240, 255, 0.45); }
   td { padding: 9px 14px; font-size: 13px; }
   .td-email { font-family: 'Courier New', monospace; font-size: 12px; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .td-domain { color: var(--muted); font-size: 12px; }
@@ -277,13 +309,14 @@
     font-weight: 600;
     letter-spacing: 0.02em;
   }
-  .badge-valid   { background: rgba(29,189,137,0.15);  color: #1dbd89; }
-  .badge-invalid { background: rgba(226,75,74,0.15);   color: #e24b4a; }
-  .badge-risky   { background: rgba(212,83,126,0.15);  color: #d4537e; }
-  .badge-active  { background: rgba(75,158,255,0.15);  color: #4b9eff; }
-  .badge-inactive{ background: rgba(239,159,39,0.15);  color: #ef9f27; }
+  .badge-valid   { background: rgba(10,159,110,0.14);  color: #0a9f6e; }
+  .badge-invalid { background: rgba(214,59,58,0.12);   color: #d63b3a; }
+  .badge-risky   { background: rgba(196,61,106,0.12);  color: #c43d6a; }
+  .badge-active  { background: rgba(37,99,199,0.12);  color: #2563c7; }
+  .badge-inactive{ background: rgba(201,122,10,0.12);  color: #c97a0a; }
+  .badge-unknown { background: rgba(100,116,139,0.14); color: #64748b; }
   .score-wrap { display: flex; align-items: center; gap: 8px; }
-  .score-bar { width: 44px; height: 4px; border-radius: 2px; background: var(--bg3); overflow: hidden; }
+  .score-bar { width: 44px; height: 4px; border-radius: 2px; background: rgba(200, 215, 235, 0.7); overflow: hidden; }
   .score-fill { height: 100%; border-radius: 2px; }
   .score-num { font-size: 12px; color: var(--muted); }
 
@@ -300,29 +333,31 @@
     padding: 5px 12px;
     border-radius: 6px;
     border: 1px solid var(--border2);
-    background: transparent;
+    background: rgba(255, 255, 255, 0.8);
     color: var(--muted);
     font-size: 12px;
     cursor: pointer;
     transition: all 0.12s;
   }
-  .page-btn:hover:not(:disabled) { color: var(--text); background: rgba(255,255,255,0.05); }
+  .page-btn:hover:not(:disabled) { color: var(--heading); background: rgba(255, 255, 255, 0.95); }
   .page-btn:disabled { opacity: 0.3; cursor: not-allowed; }
   .page-info { font-size: 12px; color: var(--muted); }
 
   /* Domain chart */
   .domain-card {
-    background: var(--bg2);
+    background: var(--glass);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     padding: 20px;
     margin-bottom: 24px;
+    backdrop-filter: blur(12px);
+    box-shadow: var(--gloss);
   }
   .domain-row { margin-bottom: 10px; }
   .domain-meta { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
   .domain-name { font-family: monospace; color: var(--text); }
   .domain-count { color: var(--muted); }
-  .domain-track { height: 5px; border-radius: 3px; background: var(--bg3); display: flex; overflow: hidden; }
+  .domain-track { height: 5px; border-radius: 3px; background: rgba(200, 215, 235, 0.6); display: flex; overflow: hidden; }
   .domain-valid { height: 100%; background: var(--green); }
   .domain-risky { height: 100%; background: var(--pink); }
   .domain-invalid { height: 100%; background: var(--red); opacity: 0.7; }
@@ -347,7 +382,7 @@
   #toast {
     position: fixed;
     bottom: 20px; right: 20px;
-    background: var(--bg2);
+    background: rgba(255, 255, 255, 0.92);
     border: 1px solid var(--border2);
     color: var(--text);
     padding: 10px 16px;
@@ -356,6 +391,8 @@
     display: none;
     z-index: 999;
     max-width: 320px;
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: blur(16px);
   }
 
   @media (max-width: 700px) {
@@ -404,6 +441,7 @@
           <div class="export-item" onclick="exportCsv(null,'active')"><span class="dot" style="background:#4b9eff"></span>Active only</div>
           <div class="export-item" onclick="exportCsv('risky')"><span class="dot" style="background:#d4537e"></span>Risky only</div>
           <div class="export-item" onclick="exportCsv('invalid')"><span class="dot" style="background:#e24b4a"></span>Invalid only</div>
+          <div class="export-item" onclick="exportCsv(null,null,'true')"><span class="dot" style="background:#a78bfa"></span>Catch-all only</div>
         </div>
       </div>
     </div>
@@ -435,6 +473,14 @@
             </div>
             <div class="chart-hint">Click a segment to drill into that list</div>
           </div>
+          <div class="chart-card">
+            <div class="chart-title">Catch-all domains</div>
+            <div class="chart-body">
+              <div class="pie-wrap"><canvas id="pie-catchall" width="130" height="130"></canvas></div>
+              <div class="legend" id="legend-catchall"></div>
+            </div>
+            <div class="chart-hint">Send-with-caution segment</div>
+          </div>
         </div>
         <div class="chart-card" style="margin-bottom:24px">
           <div class="chart-title">Insight</div>
@@ -456,8 +502,12 @@
               <tr>
                 <th>Email</th>
                 <th>Domain</th>
+                <th>Domain status</th>
+                <th>Mailbox</th>
+                <th>SMTP</th>
                 <th>Status</th>
                 <th>Activity</th>
+                <th>Catch-all</th>
                 <th>Score</th>
                 <th>Flags</th>
               </tr>
@@ -483,7 +533,7 @@
 // ── State ─────────────────────────────────────────────────────────────────────
 let stats = null;
 let jobId = sessionStorage.getItem('job_id');
-let currentFilter = { legitimacy: null, activity: null };
+let currentFilter = { legitimacy: null, activity: null, catch_all: null, domain_status: null, mailbox_exists: null };
 let currentPage = 1;
 let searchTimer = null;
 const PER_PAGE = 100;
@@ -508,7 +558,7 @@ async function loadJob() {
     stats = data.stats;
     document.getElementById('loading-state').style.display = 'none';
     document.getElementById('topbar-meta').textContent =
-      `${stats.total.toLocaleString()} emails · ${data.sources.map(s=>s.name).join(', ')}`;
+      `${stats.total.toLocaleString()} emails · API: ${(stats.api_calls_made||0).toLocaleString()} calls · ~$${(stats.estimated_cost_usd||0).toFixed(2)}`;
     renderOverview();
     showPanel('overview');
   } catch (e) {
@@ -538,12 +588,15 @@ function renderOverview() {
 
   // Stat cards
   const cards = [
-    { label:'Total', value:s.total, pct:'', color:'#e8eaf0', key:null },
-    { label:'Valid', value:s.valid, pct:s.valid_pct+'%', color:'#1dbd89', key:'valid' },
-    { label:'Risky', value:s.risky, pct:s.risky_pct+'%', color:'#d4537e', key:'risky' },
-    { label:'Invalid', value:s.invalid, pct:s.invalid_pct+'%', color:'#e24b4a', key:'invalid' },
-    { label:'Active', value:s.active, pct:s.active_pct+'%', color:'#4b9eff', key:'active_act' },
-    { label:'Inactive', value:s.inactive, pct:'', color:'#ef9f27', key:'inactive_act' },
+    { label:'Total', value:s.total, pct:'', color:'#0f1a2e', key:null },
+    { label:'Valid', value:s.valid, pct:s.valid_pct+'%', color:'#0a9f6e', key:'valid' },
+    { label:'Risky', value:s.risky, pct:s.risky_pct+'%', color:'#c43d6a', key:'risky' },
+    { label:'Invalid', value:s.invalid, pct:s.invalid_pct+'%', color:'#d63b3a', key:'invalid' },
+    { label:'Active', value:s.active, pct:s.active_pct+'%', color:'#2563c7', key:'active_act' },
+    { label:'Inactive', value:s.inactive, pct:'', color:'#c97a0a', key:'inactive_act' },
+    { label:'Catch-all', value:s.catch_all||0, pct:(s.catch_all_pct||0)+'%', color:'#a78bfa', key:'catchall' },
+    { label:'Domain missing', value:s.domain_not_found||0, pct:'', color:'#b45309', key:'domain_not_found' },
+    { label:'No mailbox', value:s.mailbox_invalid||0, pct:'', color:'#9f1239', key:'mailbox_invalid' },
   ];
   document.getElementById('stat-grid').innerHTML = cards.map(c => `
     <div class="stat-card" style="--c:${c.color}" onclick="drillFromCard('${c.key}')">
@@ -555,21 +608,30 @@ function renderOverview() {
 
   // Pies
   drawPie('pie-legitimacy', [
-    { label:'Valid', value:s.valid, color:'#1dbd89', key:'valid' },
-    { label:'Risky', value:s.risky, color:'#d4537e', key:'risky' },
-    { label:'Invalid', value:s.invalid, color:'#e24b4a', key:'invalid' },
+    { label:'Valid', value:s.valid, color:'#0a9f6e', key:'valid' },
+    { label:'Risky', value:s.risky, color:'#c43d6a', key:'risky' },
+    { label:'Invalid', value:s.invalid, color:'#d63b3a', key:'invalid' },
   ], 'legitimacy');
   drawPie('pie-activity', [
-    { label:'Active', value:s.active, color:'#4b9eff', key:'active' },
-    { label:'Inactive', value:s.inactive, color:'#ef9f27', key:'inactive' },
+    { label:'Active', value:s.active, color:'#2563c7', key:'active' },
+    { label:'Inactive', value:s.inactive, color:'#c97a0a', key:'inactive' },
   ], 'activity');
+  drawPie('pie-catchall', [
+    { label:'Catch-all', value:s.catch_all||0, color:'#8b6fd4', key:'true' },
+    { label:'Not catch-all', value:s.not_catch_all||0, color:'#0a9f6e', key:'false' },
+    { label:'Unknown', value:s.catch_all_unknown||0, color:'#8a9bb5', key:'unknown' },
+  ], 'catchall');
 
   // Insight
   const total = s.total;
-  let insight = `Your list has <strong style="color:#fff">${s.valid_pct}% valid</strong> addresses. `;
-  if (s.invalid > 0) insight += `Remove <strong style="color:#e24b4a">${s.invalid.toLocaleString()} invalid</strong> emails to reduce bounces. `;
-  if (s.risky > 0) insight += `<strong style="color:#d4537e">${s.risky.toLocaleString()} risky</strong> addresses need manual review. `;
-  if (s.active > 0) insight += `<strong style="color:#4b9eff">${s.active.toLocaleString()} active</strong> emails are your best send targets.`;
+  let insight = `Your list has <strong style="color:#0f1a2e">${s.valid_pct}% valid</strong> addresses. `;
+  if (s.invalid > 0) insight += `Remove <strong style="color:#d63b3a">${s.invalid.toLocaleString()} invalid</strong> emails to reduce bounces. `;
+  if (s.risky > 0) insight += `<strong style="color:#c43d6a">${s.risky.toLocaleString()} risky</strong> addresses need manual review. `;
+  if (s.domain_not_found > 0) insight += `<strong style="color:#b45309">${s.domain_not_found.toLocaleString()}</strong> addresses use dead or unregistered domains. `;
+  if (s.domain_inactive > 0) insight += `<strong style="color:#c97a0a">${s.domain_inactive.toLocaleString()}</strong> domains have no mail (MX) records. `;
+  if (s.mailbox_invalid > 0) insight += `<strong style="color:#9f1239">${s.mailbox_invalid.toLocaleString()}</strong> mailboxes do not exist on their provider. `;
+  if (s.catch_all > 0) insight += `<strong style="color:#8b6fd4">${s.catch_all.toLocaleString()} catch-all</strong> addresses need send-with-caution handling. `;
+  if (s.active > 0) insight += `<strong style="color:#2563c7">${s.active.toLocaleString()} active</strong> emails are your best send targets.`;
   document.getElementById('insight-text').innerHTML = insight;
 }
 
@@ -622,39 +684,56 @@ function drawPie(canvasId, slices, type) {
     let angle = Math.atan2(y, x);
     if (angle < -Math.PI/2) angle += Math.PI*2;
     const seg = segData.find(s => angle >= s.start && angle <= s.end);
-    if (seg) drillInto(type === 'legitimacy' ? seg.key : null, type === 'activity' ? seg.key : null);
+    if (seg) {
+      if (type === 'legitimacy') drillInto(seg.key, null, null, null, null);
+      else if (type === 'activity') drillInto(null, seg.key, null, null, null);
+      else if (type === 'catchall') drillInto(null, null, seg.key, null, null);
+    }
   };
 
   // Legend
   const legendEl = document.getElementById('legend-' + type);
-  legendEl.innerHTML = segData.map(seg => `
-    <div class="legend-item" onclick="drillInto(${type==='legitimacy'?`'${seg.key}'`:'null'}, ${type==='activity'?`'${seg.key}'`:'null'})" data-key="${seg.key}">
+  legendEl.innerHTML = segData.map(seg => {
+    const leg = type==='legitimacy' ? `'${seg.key}'` : 'null';
+    const act = type==='activity' ? `'${seg.key}'` : 'null';
+    const ca = type==='catchall' ? `'${seg.key}'` : 'null';
+    return `
+    <div class="legend-item" onclick="drillInto(${leg}, ${act}, ${ca}, null, null)" data-key="${seg.key}">
       <span class="legend-dot" style="background:${seg.color}"></span>
       <span class="legend-label">${seg.label}</span>
       <span class="legend-count" style="color:${seg.color}">${seg.value.toLocaleString()}</span>
       <span class="legend-pct">${total ? (seg.value/total*100).toFixed(1)+'%' : '—'}</span>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
 }
 
-function drillInto(legitimacy, activity) {
-  currentFilter = { legitimacy: legitimacy || null, activity: activity || null };
+function drillInto(legitimacy, activity, catch_all, domain_status, mailbox_exists) {
+  currentFilter = {
+    legitimacy: legitimacy || null,
+    activity: activity || null,
+    catch_all: catch_all || null,
+    domain_status: domain_status || null,
+    mailbox_exists: mailbox_exists || null,
+  };
   currentPage = 1;
   document.getElementById('search-box').value = '';
   showPanel('emails');
 }
 
 function drillFromCard(key) {
-  if (!key) { drillInto(null, null); return; }
-  if (['valid','risky','invalid'].includes(key)) drillInto(key, null);
-  else if (key === 'active_act') drillInto(null, 'active');
-  else if (key === 'inactive_act') drillInto(null, 'inactive');
+  if (!key) { drillInto(null, null, null, null, null); return; }
+  if (['valid','risky','invalid'].includes(key)) drillInto(key, null, null, null, null);
+  else if (key === 'active_act') drillInto(null, 'active', null, null, null);
+  else if (key === 'inactive_act') drillInto(null, 'inactive', null, null, null);
+  else if (key === 'catchall') drillInto(null, null, 'true', null, null);
+  else if (key === 'domain_not_found') drillInto(null, null, null, 'not_found', null);
+  else if (key === 'mailbox_invalid') drillInto(null, null, null, null, 'false');
 }
 
 // ── Email table ───────────────────────────────────────────────────────────────
 async function loadEmailTable() {
   const tbody = document.getElementById('email-tbody');
-  tbody.innerHTML = '<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted)"><div class="spinner" style="margin:0 auto"></div></td></tr>';
+  tbody.innerHTML = '<tr><td colspan="10" style="padding:20px;text-align:center;color:var(--muted)"><div class="spinner" style="margin:0 auto"></div></td></tr>';
 
   const f = currentFilter;
   const q = document.getElementById('search-box').value;
@@ -663,6 +742,9 @@ async function loadEmailTable() {
     per_page: PER_PAGE,
     ...(f.legitimacy && { legitimacy: f.legitimacy }),
     ...(f.activity && { activity: f.activity }),
+    ...(f.catch_all && { catch_all: f.catch_all }),
+    ...(f.domain_status && { domain_status: f.domain_status }),
+    ...(f.mailbox_exists && { mailbox_exists: f.mailbox_exists }),
     ...(q && { q }),
   });
 
@@ -671,18 +753,24 @@ async function loadEmailTable() {
 
   // Pills
   const pills = [
-    { label:'All', key:null, color:'#7a80a0' },
-    { label:'Valid', key:'valid', color:'#1dbd89', type:'legitimacy' },
-    { label:'Risky', key:'risky', color:'#d4537e', type:'legitimacy' },
-    { label:'Invalid', key:'invalid', color:'#e24b4a', type:'legitimacy' },
-    { label:'Active', key:'active', color:'#4b9eff', type:'activity' },
-    { label:'Inactive', key:'inactive', color:'#ef9f27', type:'activity' },
+    { label:'All', key:null, color:'#8a9bb5' },
+    { label:'Valid', key:'valid', color:'#0a9f6e', type:'legitimacy' },
+    { label:'Risky', key:'risky', color:'#c43d6a', type:'legitimacy' },
+    { label:'Invalid', key:'invalid', color:'#d63b3a', type:'legitimacy' },
+    { label:'Active', key:'active', color:'#2563c7', type:'activity' },
+    { label:'Inactive', key:'inactive', color:'#c97a0a', type:'activity' },
+    { label:'Catch-all', key:'true', color:'#8b6fd4', type:'catchall' },
+    { label:'Dead domain', key:'not_found', color:'#b45309', type:'domain_status' },
+    { label:'No mailbox', key:'false', color:'#9f1239', type:'mailbox_exists' },
   ];
   const cf = currentFilter;
   document.getElementById('pill-bar').innerHTML = pills.map(p => {
-    const isActive = (!p.type && !cf.legitimacy && !cf.activity)
+    const isActive = (!p.type && !cf.legitimacy && !cf.activity && !cf.catch_all && !cf.domain_status && !cf.mailbox_exists)
       || (p.type === 'legitimacy' && cf.legitimacy === p.key)
-      || (p.type === 'activity' && cf.activity === p.key);
+      || (p.type === 'activity' && cf.activity === p.key)
+      || (p.type === 'catchall' && cf.catch_all === p.key)
+      || (p.type === 'domain_status' && cf.domain_status === p.key)
+      || (p.type === 'mailbox_exists' && cf.mailbox_exists === p.key);
     return `<div class="pill" onclick="setPill('${p.type||''}','${p.key||''}')"
       style="background:${isActive ? p.color+'22' : 'var(--bg3)'};
              color:${isActive ? p.color : 'var(--muted)'};
@@ -693,6 +781,9 @@ async function loadEmailTable() {
   const titleParts = [];
   if (cf.legitimacy) titleParts.push(cf.legitimacy.charAt(0).toUpperCase() + cf.legitimacy.slice(1));
   if (cf.activity) titleParts.push(cf.activity.charAt(0).toUpperCase() + cf.activity.slice(1));
+  if (cf.catch_all) titleParts.push(cf.catch_all === 'true' ? 'Catch-all' : cf.catch_all);
+  if (cf.domain_status) titleParts.push(cf.domain_status.replace('_', ' '));
+  if (cf.mailbox_exists === 'false') titleParts.push('No mailbox');
   document.getElementById('drill-title').textContent = titleParts.length ? titleParts.join(' · ') + ' emails' : 'All emails';
   document.getElementById('drill-count').textContent = data.total.toLocaleString() + ' emails';
 
@@ -700,12 +791,18 @@ async function loadEmailTable() {
   tbody.innerHTML = data.emails.map(r => {
     const scoreColor = r.score >= 65 ? '#1dbd89' : r.score >= 40 ? '#ef9f27' : '#e24b4a';
     const flags = (r.risk_flags || []).slice(0,2).join(', ');
+    const catchLabel = r.catch_all === true ? 'yes' : r.catch_all === false ? 'no' : 'unknown';
+    const mailboxLabel = r.mailbox_exists === true ? 'yes' : r.mailbox_exists === false ? 'no' : '—';
     return `
       <tr>
         <td class="td-email" title="${r.email}">${r.email}</td>
         <td class="td-domain">${r.domain}</td>
+        <td><span class="badge">${r.domain_status || '—'}</span></td>
+        <td><span class="badge">${mailboxLabel}</span></td>
+        <td style="font-size:11px;color:var(--dim)">${r.smtp_status || '—'}</td>
         <td><span class="badge badge-${r.legitimacy}">${r.legitimacy}</span></td>
         <td><span class="badge badge-${r.activity}">${r.activity}</span></td>
+        <td><span class="badge">${catchLabel}</span></td>
         <td>
           <div class="score-wrap">
             <div class="score-bar"><div class="score-fill" style="width:${r.score}%;background:${scoreColor}"></div></div>
@@ -714,7 +811,7 @@ async function loadEmailTable() {
         </td>
         <td style="font-size:11px;color:var(--dim);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${flags}">${flags}</td>
       </tr>`;
-  }).join('') || '<tr><td colspan="6" style="padding:20px;text-align:center;color:var(--muted)">No emails match</td></tr>';
+  }).join('') || '<tr><td colspan="10" style="padding:20px;text-align:center;color:var(--muted)">No emails match</td></tr>';
 
   // Pagination
   const pg = document.getElementById('pagination');
@@ -730,9 +827,12 @@ async function loadEmailTable() {
 }
 
 function setPill(type, key) {
-  currentFilter = { legitimacy: null, activity: null };
+  currentFilter = { legitimacy: null, activity: null, catch_all: null, domain_status: null, mailbox_exists: null };
   if (type === 'legitimacy' && key) currentFilter.legitimacy = key;
   if (type === 'activity' && key) currentFilter.activity = key;
+  if (type === 'catchall' && key) currentFilter.catch_all = key;
+  if (type === 'domain_status' && key) currentFilter.domain_status = key;
+  if (type === 'mailbox_exists' && key) currentFilter.mailbox_exists = key;
   currentPage = 1;
   loadEmailTable();
 }
@@ -769,10 +869,11 @@ document.addEventListener('click', e => {
   if (!e.target.closest('.export-btn') && !e.target.closest('.export-menu'))
     document.getElementById('export-menu').classList.remove('open');
 });
-function exportCsv(legitimacy, activity) {
+function exportCsv(legitimacy, activity, catch_all) {
   const params = new URLSearchParams();
   if (legitimacy) params.set('legitimacy', legitimacy);
   if (activity) params.set('activity', activity);
+  if (catch_all) params.set('catch_all', catch_all);
   window.open(`/api/job/${jobId}/export?${params}`, '_blank');
   document.getElementById('export-menu').classList.remove('open');
 }

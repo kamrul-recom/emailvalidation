@@ -9,3 +9,9 @@ lxml==5.2.2
 pdf2image==1.17.0
 pytesseract==0.3.13
 gunicorn==22.0.0
+celery==5.4.0
+redis==5.1.1
+pydantic-settings==2.5.2
+email-validator==2.2.0
+httpx==0.27.2
+xlrd==2.0.1

@@ -354,6 +354,13 @@ paket-files/
 **/__pycache__/
 *.pyc
 
+# BulkVerify runtime
+uploads/
+exports/
+.pytest_cache/
+.ruff_cache/
+.venv/
+
 # Cake - Uncomment if you are using it
 #tools/**
 #!tools/packages.config
